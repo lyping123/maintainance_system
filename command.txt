@@ -1,0 +1,4 @@
+
+update vite to latest
+npm uninstall @vitejs/plugin-vue vite
+npm install vite@latest @vitejs/plugin-vue@latest
