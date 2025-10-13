@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\reportsController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -18,10 +19,19 @@ Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+// Route::get('/reports',[reportsController::class,'index'])->name("report.index");
+
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/reports',[reportsController::class,'index'])->name("report.index");
+    Route::post('/report/store',[reportsController::class,'store'])->name("report.store");
+    Route::put('/report/update/{report}',[reportsController::class,'update'])->name('report.update');
+    Route::delete('/report/destroy/{report}',[reportsController::class,'destroy'])->name('report.destroy');;
+
 });
 
 require __DIR__.'/auth.php';
