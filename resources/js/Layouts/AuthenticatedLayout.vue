@@ -45,6 +45,12 @@ const showingNavigationDropdown = ref(false);
                                 >
                                     Reports
                                 </NavLink>
+                                <NavLink
+                                    :href="route('technical.index')"
+                                    :active="route().current('technical.index')"
+                                >
+                                    person in charge
+                                </NavLink>
                             </div>
                         </div>
 
@@ -159,6 +165,14 @@ const showingNavigationDropdown = ref(false);
                             :active="route().current('report.index')"
                         >
                             Reports
+                        </ResponsiveNavLink>
+                    </div>
+                    <div class="space-y-1 pb-3 pt-2">
+                        <ResponsiveNavLink
+                            :href="route('report.index')"
+                            :active="route().current('report.index')"
+                        >
+                            
                         </ResponsiveNavLink>
                     </div>
 

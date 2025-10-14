@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\reportsController;
+use App\Http\Controllers\technicalPeopleController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -30,7 +31,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports',[reportsController::class,'index'])->name("report.index");
     Route::post('/report/store',[reportsController::class,'store'])->name("report.store");
     Route::put('/report/update/{report}',[reportsController::class,'update'])->name('report.update');
-    Route::delete('/report/destroy/{report}',[reportsController::class,'destroy'])->name('report.destroy');;
+    Route::delete('/report/destroy/{report}',[reportsController::class,'destroy'])->name('report.destroy');
+
+    Route::get('/report/{id}/detail',[reportsController::class,'reportDetail'])->name('report.detail.show');
+
+    Route::get('/personLists',[technicalPeopleController::class,'index'])->name('technical.index');
+    Route::post('/person/store',[technicalPeopleController::class,'store'])->name('technical.store');
+    Route::put('/person/{technical_person}/update',[technicalPeopleController::class,'update'])->name('technical.update');
+    Route::delete('/person/{technical_person}/destroy',[technicalPeopleController::class,'destroy'])->name('technical.destroy');
+
 
 });
 

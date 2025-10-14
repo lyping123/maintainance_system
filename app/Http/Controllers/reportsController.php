@@ -53,8 +53,16 @@ class reportsController extends Controller
             'places'        => 'required|string|max:255',
             'emergency'     => 'required|string|max:50',
         ]);
-        
+
         $report->update($validated);
 
+    }
+
+    public function reportDetail($id)
+    {
+        $reportDetail=report::find($id);
+        $reportDetail["created_date"]=$reportDetail->created_at->format('Y-m-d');
+
+        return Inertia::render('ReportDetails',compact('reportDetail'));
     }
 }

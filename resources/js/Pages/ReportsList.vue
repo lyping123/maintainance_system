@@ -24,10 +24,7 @@ const props = defineProps({
 });
 
 const confiAddReport= ref(false);
-
 const confieditReport=ref(false);
-
-
 
 
 // reactive search input
@@ -61,7 +58,8 @@ function searchReports() {
 
 
 function viewReport(id) {
-    alert(`View report ${id}`);
+    
+    router.get(route('report.detail.show', { id: id }));
 }
 
 function editReport(report) {
