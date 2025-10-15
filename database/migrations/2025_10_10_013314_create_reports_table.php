@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
-            $table->string('s_name');
-            $table->string('s_ic');
+            $table->string('s_name')->nullable();
+            $table->string('s_ic')->nullable();
             $table->string("places");
             $table->string("report_type");
             $table->string("report_issue");

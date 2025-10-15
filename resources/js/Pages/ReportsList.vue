@@ -23,6 +23,8 @@ const props = defineProps({
     filters: Object,
 });
 
+
+
 const confiAddReport= ref(false);
 const confieditReport=ref(false);
 
@@ -358,7 +360,7 @@ function deleteReport(id){
                                 </td>
                             </tr>
                             <tr v-if="reports.length === 0">
-                                <td colspan="7" class="px-4 py-4 text-center text-gray-500">No reports found.</td>
+                                <td colspan="8" class="px-4 py-4 text-center text-gray-500">No reports found.</td>
                             </tr>
                         </tbody>
                     </table>

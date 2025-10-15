@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\reportsController;
 use App\Http\Controllers\technicalPeopleController;
+use App\Models\report;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -32,8 +33,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/report/store',[reportsController::class,'store'])->name("report.store");
     Route::put('/report/update/{report}',[reportsController::class,'update'])->name('report.update');
     Route::delete('/report/destroy/{report}',[reportsController::class,'destroy'])->name('report.destroy');
+    Route::post('/report/{id}/close/',[reportsController::class,'closeReport'])->name('report.close');
 
     Route::get('/report/{id}/detail',[reportsController::class,'reportDetail'])->name('report.detail.show');
+    Route::post('/report/{id}/assign',[reportsController::class,'assignTechnician'])->name('report.assign.technician');
+    Route::put('/report/{id}/assign/update',[reportsController::class,'updateAssignTechnician'])->name('report.assign.technician.update');
+    Route::delete('/report/{id}/assign/destroy',[reportsController::class,'destroyAssignTechnician'])->name('report.destroye.assign.technician');
+    
 
     Route::get('/personLists',[technicalPeopleController::class,'index'])->name('technical.index');
     Route::post('/person/store',[technicalPeopleController::class,'store'])->name('technical.store');

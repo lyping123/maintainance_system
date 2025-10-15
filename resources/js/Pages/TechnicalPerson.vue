@@ -5,9 +5,10 @@ import SecondaryButton from '@/Components/SecondaryButton.vue';
 import Modal from '@/Components/Modal.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
+import Selectbox from '@/Components/Selectbox.vue';
 
 import DangerButton from '@/Components/DangerButton.vue';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 
 const editingPerson = ref(false);
@@ -31,8 +32,30 @@ function openPeoplesModal()
 }
 
 const props = defineProps({
-	technicalPeople: Array,
+    technicalPeople: Array,
+    filters: Object,
 });
+
+// search and filter state (preserve from server-provided filters if present)
+const search = ref(props.filters?.search || '');
+const selectedField = ref(props.filters?.field || '');
+
+const fieldsOptions = computed(() => {
+    const set = new Set();
+    (props.technicalPeople || []).forEach(p => { if (p.field) set.add(p.field); });
+    const arr = Array.from(set).sort();
+    return arr.map(f => ({ value: f, label: f }));
+});
+
+function searchPeople() {
+    router.get(route('technical.index'), { search: search.value, field: selectedField.value }, { preserveState: true, replace: true });
+}
+
+function clearFilters() {
+    search.value = '';
+    selectedField.value = '';
+    router.get(route('technical.index'), {}, { preserveState: true, replace: true });
+}
 
 
 // function viewPerson(id) {
@@ -84,27 +107,12 @@ function updatePerson(id)
     });
 }
 
-
-
-
 function deletePerson(id) 
 {
     if (!confirm('Delete this technical person?')) return;
     form.delete(route('technical.destroy', { id }), { preserveState: true, onSuccess: () => { alert('Deleted'); } });
 }
 
-// function editPerson(id) {
-// 	router.get(route('technical.edit', { id }));
-// }
-
-// function deletePerson(id) {
-// 	if (!confirm('Delete this technical person?')) return;
-// 	router.delete(route('technical.destroy', { id }), { preserveState: true, onSuccess: () => { alert('Deleted'); } });
-// }
-
-// function createPerson() {
-// 	router.get(route('technical.create'));
-// }
 </script>
 
 <template>
@@ -119,7 +127,52 @@ function deletePerson(id)
 				</div>
 			</div>
 		</template>
-        <Modal :show="peopleModal" @close="closePeoplesModal">
+        
+		
+        <div class="mt-4 flex items-center space-x-3">
+            <div class="w-1/2">
+                <input v-model="search" @keyup.enter="searchPeople" type="text" placeholder="Search name or email..." class="w-full rounded-md border-gray-300 p-2" />
+            </div>
+            <div class="w-1/4">
+                <Selectbox v-model="selectedField" :options="fieldsOptions" placeholder="Filter by field" />
+            </div>
+            <div class="flex items-center space-x-2">
+                <button @click="searchPeople" class="px-3 py-1 bg-blue-600 text-white rounded">Search</button>
+                <button @click="clearFilters" class="px-3 py-1 bg-gray-200 rounded">Clear</button>
+            </div>
+        </div>
+
+		<div class="bg-white rounded-lg shadow overflow-hidden mt-4">
+			<table class="min-w-full divide-y divide-gray-200">
+				<thead class="bg-gray-50">
+					<tr>
+						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Field</th>
+						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
+						<th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+					</tr>
+				</thead>
+				<tbody class="bg-white divide-y divide-gray-200">
+					<tr v-for="person in technicalPeople" :key="person.id">
+						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ person.name }}</td>
+						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ person.email }}</td>
+						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ person.phone }}</td>
+						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ person.field }}</td>
+						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ person.address }}</td>
+						<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+							<button @click="editPerson(person)" class="text-yellow-600 hover:text-yellow-900 mr-2">Edit</button>
+							<button @click="deletePerson(person.id)" class="text-red-600 hover:text-red-900">Delete</button>
+						</td>
+					</tr>
+					<tr v-if="technicalPeople.length === 0">
+						<td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">No technical people found.</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+        <Modal :show="peopleModal" @close="closeModal">
             <div class="p-6 bg-white rounded-lg shadow-lg w-full max-w-lg mx-auto">
                     <!-- Header -->
                     <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2 flex items-center justify-between">
@@ -217,38 +270,6 @@ function deletePerson(id)
                 </div>
             </div>
         </Modal>
-        
-
-		<div class="bg-white rounded-lg shadow overflow-hidden mt-4">
-			<table class="min-w-full divide-y divide-gray-200">
-				<thead class="bg-gray-50">
-					<tr>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Field</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
-						<th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-					</tr>
-				</thead>
-				<tbody class="bg-white divide-y divide-gray-200">
-					<tr v-for="person in technicalPeople" :key="person.id">
-						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ person.name }}</td>
-						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ person.email }}</td>
-						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ person.phone }}</td>
-						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ person.field }}</td>
-						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ person.address }}</td>
-						<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-							<button @click="editPerson(person)" class="text-yellow-600 hover:text-yellow-900 mr-2">Edit</button>
-							<button @click="deletePerson(person.id)" class="text-red-600 hover:text-red-900">Delete</button>
-						</td>
-					</tr>
-					<tr v-if="technicalPeople.length === 0">
-						<td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">No technical people found.</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
 
 	</AuthenticatedLayout>
 </template>

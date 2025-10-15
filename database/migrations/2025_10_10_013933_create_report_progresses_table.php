@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('report_progresses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('report_id')->constrained('reports')->onDelete("cascade");
-            $table->string('progress');
+            $table->string('solution');
             $table->string('status');
-            $table->string('p_id')->constrained('technical_people')->ondelete('cascade');
+            $table->foreignId('p_id')->constrained('technical_people')->onDelete('cascade');
             $table->timestamps();
         });
     }

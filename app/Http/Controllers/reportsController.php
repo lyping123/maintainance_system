@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ReportResource;
 use App\Models\report;
+use App\Models\report_progress;
+use App\Models\technical_person;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 
@@ -57,12 +60,77 @@ class reportsController extends Controller
         $report->update($validated);
 
     }
+    public function closeReport($id)
+    {
+        $report=report::find($id);
+        $report->status="CLOSED";
+        $report->save();
+        return redirect()->back()->with('success', 'Report closed successfully!');
+    }
 
     public function reportDetail($id)
     {
         $reportDetail=report::find($id);
-        $reportDetail["created_date"]=$reportDetail->created_at->format('Y-m-d');
-
-        return Inertia::render('ReportDetails',compact('reportDetail'));
+        // dd($reportDetail->report_progress);
+        // $reportDetail["created_date"]=$report->created_at->format('Y-m-d');
+        // $reportDetail=new ReportResource($report);
+        
+        $reportDetail["report_aaa"]=$reportDetail->report_progress->map(function ($report_progress) {
+            $report_progress["created_date"]=$report_progress->created_at->format('Y-m-d');
+            $report_progress["person_name"]=$report_progress->person;
+            return $report_progress;
+            
+        });
+        $techbicalPerson=technical_person::all();
+        
+        return Inertia::render('ReportDetails',compact('reportDetail','techbicalPerson'));
     }
+
+    public function assignTechnician(Request $request,$id)
+    {
+        $validated = $request->validate([
+            "solution"=>"required|string",
+            "p_id"=>"required|integer",
+        ]);
+
+        $validated["report_id"]= $id;
+        $validated["status"]="IN PROGRESS";
+
+        $report_detail=report_progress::create($validated);
+        if($report_detail){
+            $report=report::find($id);
+            $report->status="IN PROGRESS";
+            $report->save();
+
+            return redirect()->back()->with('success', 'Technician assigned successfully!');
+        }
+        return redirect()->back()->with('error', 'Technician assignment failed!');
+
+    }
+
+    public function updateAssignTechnician(Request $request,$id)
+    {
+        $validated = $request->validate([
+            "solution"=>"required|string",
+            "p_id"=>"required|integer",
+        ]);
+        $report_detail=report_progress::find($id);
+        $report_detail->update($validated);
+        if($report_detail){
+            return redirect()->back()->with('success', 'Technician updated successfully!');
+        }
+        return redirect()->back()->with('error', 'Technician update failed!');
+
+    }
+
+    public function destroyAssignTechnician($id)
+    {
+        $reportTechnical=report_progress::find($id);
+        $reportTechnical->delete();
+        if($reportTechnical){
+            return redirect()->back()->with('success', 'Technician removed successfully!');
+        }
+        return redirect()->back()->with('error', 'Technician removal failed!');
+    }
+
 }
