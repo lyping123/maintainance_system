@@ -11,6 +11,18 @@ use Illuminate\Http\Request;
 
 class reportsController extends Controller
 {
+
+    public function dashboard()
+    {
+        $reports=report::where('status','PENDING')->orderBy('created_at','desc')->get();
+        $history=report::where('status','CLOSED')->orderBy('created_at','desc')->get();
+        $history=$history->map(function ($report) {
+            $report->created_date = $report->created_at->format('Y-m-d');
+            return $report;
+        });
+    
+        return Inertia::render('Dashboard',compact('reports','history'));
+    }
     public function index()
     {
         $reports=report::all()->map(function ($report) {
