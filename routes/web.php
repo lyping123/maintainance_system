@@ -25,7 +25,7 @@ Route::get('/send-mail',function(){
         $updated_at=$item->updated_at;
         $now=now();
         $diffInDays=$updated_at->diffInDays($now);
-        if($diffInDays>2 && $item->status!='CLOSED'){
+        if($diffInDays>=2 && $item->status!='CLOSED'){
             return $item;
         }
     })->filter(); // filter out null values
@@ -33,7 +33,9 @@ Route::get('/send-mail',function(){
     if($report_remind->isEmpty()){
         return "No report to remind";
     }
-    Mail::to("lyping0526@gmail.com")->send(new remindReportMailer($report_remind));
+    $email="sysynergy@hotmail.com";
+
+    Mail::to($email)->send(new remindReportMailer($report_remind));
     
 });
 
