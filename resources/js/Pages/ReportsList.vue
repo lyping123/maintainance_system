@@ -7,6 +7,7 @@ import Selectbox from '@/Components/Selectbox.vue';
 import TextInput from '@/Components/TextInput.vue';
 import FileInput from '@/Components/FileInput.vue';
 import DangerButton from '@/Components/DangerButton.vue';
+import InputSelectOption from '@/Components/InputSelectOption.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 
 import { ref,computed } from 'vue';
@@ -32,17 +33,40 @@ const confiAddReport= ref(false);
 const confieditReport=ref(false);
 
 const selectedField = ref(props.filters?.field || '');
+// filters for list
+const search = ref(props.filters?.search || '');
+const startDate = ref(props.filters?.start_date || '');
+const endDate = ref(props.filters?.end_date || '');
+const filterStatus = ref(props.filters?.status || '');
+const filterHostel = ref(props.filters?.hostel || '');
 
 const filterOption = computed(() => {
     const map = new Map();
     (props.hostels || []).forEach(p => {
         if (p && (p.id !== undefined) && p.h_address) {
-           map.set(p.id,p.h_address);
+           map.set(p.id, p.h_address);
         }
     });
-    const arr = Array.from(map, ([id, name]) => ({ label: name, value: name }));
+    const arr = Array.from(map, ([id, name]) => ({ label: name, value: id }));
     return arr.sort((a, b) => String(a.label).localeCompare(String(b.label)));
 });
+
+// Normalize reports prop: the controller may return a paginator (with `data`) or an array.
+const reportsData = computed(() => {
+    const r = props.reports;
+    if (!r) return [];
+    if (Array.isArray(r)) return r;
+    if (r.data && Array.isArray(r.data)) return r.data;
+    // If Inertia returned a single resource or object, try to coerce to array
+    return [];
+});
+
+const statusOptions = [
+    { label: 'All', value: '' },
+    { label: 'PENDING', value: 'PENDING' },
+    { label: 'IN PROGRESS', value: 'IN PROGRESS' },
+    { label: 'CLOSED', value: 'CLOSED' },
+];
 
 
 // reactive search input
@@ -61,7 +85,6 @@ const closeModal = () => {
 
 function submit_report()
 {
-    form.places = selectedField.value;
     form.post(route('report.store'), {
         preserveScroll: true,
         onSuccess:closeModal,
@@ -72,16 +95,32 @@ function submit_report()
 
 
 function searchReports() {
-    router.get(route('reports.index'), { search: search.value }, { preserveState: true, replace: true });
+    router.get(route('report.index'), {
+        search: search.value,
+        start_date: startDate.value,
+        end_date: endDate.value,
+        status: filterStatus.value,
+        hostel: filterHostel.value,
+    }, { preserveState: true, replace: true });
+}
+
+function clearFilters() {
+    search.value = '';
+    startDate.value = '';
+    endDate.value = '';
+    filterStatus.value = '';
+    filterHostel.value = '';
+    router.get(route('report.index'), {}, { preserveState: true, replace: true });
 }
 
 
 function viewReport(id) {
-    
+    if (!id) return;
     router.get(route('report.detail.show', { id: id }));
 }
 
 function editReport(report) {
+    if (!report || !report.id) return;
     confieditReport.value = true;
     form.id=report.id;
     form.report_type=report.report_type;
@@ -90,7 +129,7 @@ function editReport(report) {
     form.emergency=report.emergency;
     
 }
-
+// console.log(props.reports);
 function submit_edit_report()
 {
     let id=form.id;
@@ -106,6 +145,7 @@ function submit_edit_report()
 
 
 function deleteReport(id){
+    if (!id) return;
     router.delete(route('report.destroy', { id: id }), { preserveScroll: true, replace: true,onSuccess:()=>{alert('Report deleted successfully')} });
 
 }
@@ -121,21 +161,14 @@ function deleteReport(id){
             >
                 Reports List
             </h2>
-            <div class="flex items-center">
-                    <input
-                        v-model="search"
-                        @keyup.enter="searchReports"
-                        type="text"
-                        placeholder="Search reports..."
-                        class="border rounded-lg px-3 py-1 text-sm"
-                    />
-                    <button
-                        @click="searchReports"
-                        class="ml-2 bg-blue-600 text-white text-xs px-3 py-1 rounded hover:bg-blue-700"
-                    >
-                        Search
-                    </button>
-                </div>
+            <div class="flex items-center space-x-3">
+                <input v-model="startDate" type="date" class="border rounded-lg px-3 py-1 text-sm" />
+                <input v-model="endDate" type="date" class="border rounded-lg px-3 py-1 text-sm" />
+                <Selectbox v-model="filterStatus" :options="statusOptions" placeholder="Status" />
+                <Selectbox v-model="filterHostel" :options="filterOption" placeholder="Hostel" />
+                <button @click="searchReports" class="ml-2 bg-blue-600 text-white text-xs px-3 py-1 rounded hover:bg-blue-700">Search</button>
+                <button @click="clearFilters" class="ml-2 bg-gray-200 text-xs px-3 py-1 rounded">Clear</button>
+            </div>
             
         </template>
             <Modal :show="confiAddReport" @close="closeModal">
@@ -188,7 +221,9 @@ function deleteReport(id){
                                 class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                                 placeholder="e.g., Block A, Room 205"
                             /> -->
-                            <Selectbox v-model="selectedField" :options="filterOption"> </Selectbox>
+                            <!-- <Selectbox v-model="selectedField" :options="filterOption"> </Selectbox> -->
+                            <InputSelectOption  :options="filterOption" v-model="form.places" />
+                            
                             
                         </div>
                         <div>
@@ -273,7 +308,7 @@ function deleteReport(id){
                         <!-- Location -->
                         <div>
                             <InputLabel for="places" value="Location" />
-                            <TextInput
+                            <!-- <TextInput
                                 id="places"
                                 ref="places"
                                 v-model="form.places"
@@ -281,13 +316,13 @@ function deleteReport(id){
                                 required
                                 class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                                 placeholder="e.g., Block A, Room 205"
-                            />
+                            /> -->
+                             <InputSelectOption  :options="filterOption" v-model="form.places" required placeholder="32, JALAN PERAI JAYA 2" />
                         </div>
                         <div>
                             <InputLabel for="attachment" value="Attachment">Attachment</InputLabel>
                             <FileInput id="attachment" ref="attachment" name="attachment" v-model="form.attachment" multiple="multiple"  />
                         </div>
-                        
 
                         <!-- Emergency Level -->
                         <div>
@@ -353,7 +388,7 @@ function deleteReport(id){
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            <tr v-for="(report, index) in reports" :key="report.id">
+                            <tr v-for="(report, index) in reportsData" :key="report?.id ?? index">
                                 <td class="px-4 py-2">{{ index + 1 }}</td>
                                 <td class="px-4 py-2">{{ report.s_name }}</td>
                                 <td class="px-4 py-2">{{ report.places }}</td>
@@ -390,7 +425,7 @@ function deleteReport(id){
                                     >Delete</button>
                                 </td>
                             </tr>
-                            <tr v-if="reports.length === 0">
+                            <tr v-if="reportsData.length === 0">
                                 <td colspan="8" class="px-4 py-4 text-center text-gray-500">No reports found.</td>
                             </tr>
                         </tbody>

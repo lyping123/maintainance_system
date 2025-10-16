@@ -27,15 +27,40 @@ class reportsController extends Controller
     }
     public function index()
     {
-        $DB=DB::connection("student_registration");
-        $hostels=$DB->table('hostel')->where('h_status','ACTIVE')->get();
-        
-        $reports=report::all()->map(function ($report) {
+        $request = request();
+
+        // Collect filters from query params
+        $filters = [
+            'search' => $request->query('search'),
+            'start_date' => $request->query('start_date'),
+            'end_date' => $request->query('end_date'),
+            'status' => $request->query('status'),
+            'hostel' => $request->query('hostel'),
+        ];
+
+        // Use the model scope to apply filters. Use pagination (10 per page).
+        $reportsQuery = report::query()->filter($filters)->orderBy('created_at', 'desc');
+        $reports = $reportsQuery->paginate(10)->through(function ($report) {
             $report->created_date = $report->created_at->format('Y-m-d');
             return $report;
         });
-        
-        return Inertia::render('ReportsList',compact('reports','hostels'));
+        // dd($reports);
+
+        // Retrieve hostels defensively. If the connection or table doesn't exist, fall back to empty collection.
+        $hostels = collect();
+        try {
+            $DB = DB::connection('student_registration');
+            if ($DB->getSchemaBuilder()->hasTable('hostel')) {
+                $hostels = $DB->table('hostel')->where('h_status', 'ACTIVE')->get();
+            }
+        } catch (\Exception $e) {
+            // Log exception for visibility but don't break the page
+            // You can uncomment the next line if you want to log to storage/logs
+            // \Log::error('Hostel retrieval failed: '.$e->getMessage());
+            $hostels = collect();
+        }
+
+        return Inertia::render('ReportsList', compact('reports', 'hostels'));
     }
 
     public function store(Request $request)
