@@ -2,7 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 function timeAgo(date) {
     if (!date) return '';
@@ -25,6 +25,7 @@ const props = defineProps({
 
 
 const latestPending = computed(() => (props.reports || []).filter(r => String(r.status).toLowerCase() === 'pending').slice(0, 6));
+const latestInProgress = computed(() => (props.reports || []).filter(r => String(r.status).toLowerCase() === 'in progress').slice(0, 6));
 const recentHistory = computed(() => {
     // prefer explicit history prop, fallback to recent_progress
     // console.log(props.history.report_progress.length);
@@ -60,7 +61,8 @@ function viewReport(id) {
                         <div class="text-sm text-gray-500">Overview of system activity</div>
                     </div>
                     <div class="flex items-center space-x-4">
-                        <div class="text-sm text-gray-600">Pending: <span class="inline-block bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold">{{ (props.reports || []).filter(r => String(r.status).toLowerCase() === 'pending').length }}</span></div>
+                        <div class="text-sm text-gray-600"><button >Pending: <span   class="inline-block bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold">{{ (props.reports || []).filter(r => String(r.status).toLowerCase() === 'pending').length }}</span></button></div>
+                        <div class="text-sm text-gray-600" ><button>In progress: <span  class="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold">{{ (props.reports || []).filter(r => String(r.status).toLowerCase() === 'in progress').length }}</span></button></div>
                         <div class="text-sm text-gray-600">Solved: <span class="inline-block bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold">{{ (props.history || []).filter(r => String(r.status).toLowerCase() === 'closed').length }}</span></div>
                         <div class="text-sm text-gray-600">Total Reports: <span class="font-medium">{{ (props.reports || []).length }}</span></div>
                     </div>
@@ -115,6 +117,7 @@ function viewReport(id) {
                                                 <div class="text-xs text-gray-500 mt-1">{{ h.s_name || h.user_name || '' }} • {{ timeAgo(h.created_date || h.created_at) }}</div>
                                             </div>
                                             <div class="text-xs text-gray-500">Solve in: {{ h.created_date || h.created_at }}</div>
+                                            <div class="text-xs text-black-500">Solve By:{{ h.technician_name }}</div>
                                             <div class="mt-2 text-sm text-gray-600">{{ h.note || h.solution || h.report_issue || '' }}</div>
                                             
                                         </div>

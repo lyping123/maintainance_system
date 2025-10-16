@@ -1,14 +1,15 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head,router,useForm  } from '@inertiajs/vue3';
+import { Head,router,useForm   } from '@inertiajs/vue3';
 import Modal from '@/Components/Modal.vue';
 import InputLabel from '@/Components/InputLabel.vue';
+import Selectbox from '@/Components/Selectbox.vue';
 import TextInput from '@/Components/TextInput.vue';
 import FileInput from '@/Components/FileInput.vue';
 import DangerButton from '@/Components/DangerButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 
-import { ref } from 'vue';
+import { ref,computed } from 'vue';
 
 const form=useForm({
     id:null,
@@ -22,12 +23,26 @@ const form=useForm({
 const props = defineProps({
     reports: Object,
     filters: Object,
+    hostels: Object,
 });
 
 
 
 const confiAddReport= ref(false);
 const confieditReport=ref(false);
+
+const selectedField = ref(props.filters?.field || '');
+
+const filterOption = computed(() => {
+    const map = new Map();
+    (props.hostels || []).forEach(p => {
+        if (p && (p.id !== undefined) && p.h_address) {
+           map.set(p.id,p.h_address);
+        }
+    });
+    const arr = Array.from(map, ([id, name]) => ({ label: name, value: name }));
+    return arr.sort((a, b) => String(a.label).localeCompare(String(b.label)));
+});
 
 
 // reactive search input
@@ -46,6 +61,7 @@ const closeModal = () => {
 
 function submit_report()
 {
+    form.places = selectedField.value;
     form.post(route('report.store'), {
         preserveScroll: true,
         onSuccess:closeModal,
@@ -78,13 +94,16 @@ function editReport(report) {
 function submit_edit_report()
 {
     let id=form.id;
-    form.put(route('report.update', { id: id }), {
+    // console.log(form.attachment);
+    form.post(route('report.update', { id: id }), {
+        method:'put',
         preserveScroll: true,
         onSuccess:closeModal,
         onError:()=>{console.log('error')},
         onFinish:form.reset,
     });
 }
+
 
 function deleteReport(id){
     router.delete(route('report.destroy', { id: id }), { preserveScroll: true, replace: true,onSuccess:()=>{alert('Report deleted successfully')} });
@@ -160,7 +179,7 @@ function deleteReport(id){
                         <!-- Location -->
                         <div>
                             <InputLabel for="places" value="Location" />
-                            <TextInput
+                            <!-- <TextInput
                                 id="places"
                                 ref="places"
                                 v-model="form.places"
@@ -168,7 +187,9 @@ function deleteReport(id){
                                 required
                                 class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                                 placeholder="e.g., Block A, Room 205"
-                            />
+                            /> -->
+                            <Selectbox v-model="selectedField" :options="filterOption"> </Selectbox>
+                            
                         </div>
                         <div>
                             <InputLabel for="attachment" value="Attachment">Attachment</InputLabel>

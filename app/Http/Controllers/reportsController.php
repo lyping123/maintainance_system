@@ -8,16 +8,18 @@ use App\Models\report_progress;
 use App\Models\technical_person;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class reportsController extends Controller
 {
 
     public function dashboard()
     {
-        $reports=report::where('status','PENDING')->orderBy('created_at','desc')->get();
+        $reports=report::all();
         $history=report::where('status','CLOSED')->orderBy('created_at','desc')->get();
         $history=$history->map(function ($report) {
-            $report->created_date = $report->created_at->format('Y-m-d');
+            $report->created_date = $report->updated_at->format('Y-m-d');
+            $report->technician_name = $report->report_progress->last()->person->name;
             return $report;
         });
     
@@ -25,12 +27,15 @@ class reportsController extends Controller
     }
     public function index()
     {
+        $DB=DB::connection("student_registration");
+        $hostels=$DB->table('hostel')->where('h_status','ACTIVE')->get();
+        
         $reports=report::all()->map(function ($report) {
             $report->created_date = $report->created_at->format('Y-m-d');
             return $report;
         });
         
-        return Inertia::render('ReportsList',compact('reports'));
+        return Inertia::render('ReportsList',compact('reports','hostels'));
     }
 
     public function store(Request $request)
@@ -85,8 +90,25 @@ class reportsController extends Controller
             'places'        => 'required|string|max:255',
             'emergency'     => 'required|string|max:50',
         ]);
+        
+        if ($request->hasFile('attachment')) {
+            $files = $request->file('attachment');
+            if (!is_array($files)) {
+                $files = [$files];
+            }
+
+            $paths = [];
+            foreach ($files as $file) {
+                // store on the public disk (storage/app/public/attachments)
+                $paths[] = $file->store('attachments', 'public');
+            }
+
+            // either save JSON or save array and use $casts = ['attachment' => 'array'] on the model
+            $validated['attachment'] = json_encode($paths);
+        }
 
         $report->update($validated);
+        return redirect()->route("report.index")->with('success', 'Report updated successfully!');
 
     }
     public function closeReport($id)

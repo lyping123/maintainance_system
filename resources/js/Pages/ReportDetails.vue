@@ -53,7 +53,6 @@ const filterOption = computed(() => {
 // Form used for assigning person in charge and saving solution
 
 
-console.log(props.reportDetail.s_name);
 const showAssignModal = ref(false);
 const showSolutionModal = ref(false);
 const editingAssignmentId = ref(null);
@@ -163,7 +162,7 @@ function backToList() {
                         <p class="text-sm text-gray-500">Reported by: <span class="font-medium text-gray-700">{{ reportDetail.s_name }}</span></p>
                         <p class="mt-3 text-gray-700">{{ reportDetail.report_issue }}</p>
                     </div>
-                    <div>
+                    <div v-if="attachments!=null">
                         <Image :images="attachments"  />
                     </div>
                     <div class="text-right">
