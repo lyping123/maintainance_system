@@ -6,6 +6,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import Textarea from '@/Components/Textarea.vue';
 import DangerButton from '@/Components/DangerButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
+import Image from '@/Components/Image.vue';
 import { computed, ref } from 'vue';
 
 import Selectbox from '@/Components/Selectbox.vue';
@@ -15,6 +16,14 @@ const props = defineProps({
     reportDetail: Object,
     techbicalPerson:Object,
     filters: Object,
+});
+
+const attachments = computed(() => {
+  try {
+    return JSON.parse(props.reportDetail.attachment);
+  } catch {
+    return [];
+  }
 });
 
 const form = useForm({
@@ -154,6 +163,9 @@ function backToList() {
                         <p class="text-sm text-gray-500">Reported by: <span class="font-medium text-gray-700">{{ reportDetail.s_name }}</span></p>
                         <p class="mt-3 text-gray-700">{{ reportDetail.report_issue }}</p>
                     </div>
+                    <div>
+                        <Image :images="attachments"  />
+                    </div>
                     <div class="text-right">
                         <div class="text-sm text-gray-500">Status</div>
                         <div class="mt-1">
@@ -170,8 +182,9 @@ function backToList() {
                             </span>
                         </div>
                         <div class="text-xs text-gray-400 mt-2">{{ reportDetail.created_date }}</div>
-                        <DangerButton v-if="reportDetail.status != 'CLOSED'" @click="closeCase">close case</DangerButton>
+                        <DangerButton v-if="reportDetail.status == 'IN PROGRESS'" @click="closeCase">close case</DangerButton>
                     </div>
+
                 </div>
             </div>
 
@@ -193,9 +206,7 @@ function backToList() {
                                 <div class="mt-2 text-sm text-gray-700">{{ a.solution }}</div>
                                 <div class="text-xs text-gray-400 mt-1">{{ a.created_date }}</div>
                             </div>
-                            <div class="flex items-center">
-                                <div class="text-sm font-medium text-black-800">{{ a.person.status }}</div>
-                            </div>
+                            
                             <div class="flex items-center space-x-2">
                                
                                 <button class="p-2 rounded hover:bg-gray-100 text-yellow-600" @click="editAssignment(a)" title="Edit" aria-label="Edit assignment">

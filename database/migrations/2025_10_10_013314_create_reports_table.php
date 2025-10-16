@@ -18,8 +18,9 @@ return new class extends Migration
             $table->string("places");
             $table->string("report_type");
             $table->string("report_issue");
+            $table->string('attachment')->nullable();
             $table->string("status")->default("pending");
-            $table->string("emergency")->default("no");
+            $table->string("emergency")->default("low");
             $table->timestamps();
         });
     }

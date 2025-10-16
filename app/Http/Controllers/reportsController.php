@@ -44,6 +44,23 @@ class reportsController extends Controller
 
         $validated["s_name"]="Create by admin";
         $validated["status"]="PENDING";
+        
+        // recommended replacement for $SELECTION_PLACEHOLDER$
+        if ($request->hasFile('attachment')) {
+            $files = $request->file('attachment');
+            if (!is_array($files)) {
+                $files = [$files];
+            }
+
+            $paths = [];
+            foreach ($files as $file) {
+                // store on the public disk (storage/app/public/attachments)
+                $paths[] = $file->store('attachments', 'public');
+            }
+
+            // either save JSON or save array and use $casts = ['attachment' => 'array'] on the model
+            $validated['attachment'] = json_encode($paths);
+        }
 
         $reports=report::create($validated);
         if($reports){

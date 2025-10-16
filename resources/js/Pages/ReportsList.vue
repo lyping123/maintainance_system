@@ -4,7 +4,7 @@ import { Head,router,useForm  } from '@inertiajs/vue3';
 import Modal from '@/Components/Modal.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
-import Textarea from '@/Components/Textarea.vue';
+import FileInput from '@/Components/FileInput.vue';
 import DangerButton from '@/Components/DangerButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 
@@ -16,6 +16,7 @@ const form=useForm({
     report_issue:'',
     places:'',
     emergency:'',
+    attachment:null,
 });
 
 const props = defineProps({
@@ -169,6 +170,10 @@ function deleteReport(id){
                                 placeholder="e.g., Block A, Room 205"
                             />
                         </div>
+                        <div>
+                            <InputLabel for="attachment" value="Attachment">Attachment</InputLabel>
+                            <FileInput id="attachment" ref="attachment" name="attachment" v-model="form.attachment" multiple="multiple"  />
+                        </div>
 
                         <!-- Emergency Level -->
                         <div>
@@ -257,6 +262,11 @@ function deleteReport(id){
                                 placeholder="e.g., Block A, Room 205"
                             />
                         </div>
+                        <div>
+                            <InputLabel for="attachment" value="Attachment">Attachment</InputLabel>
+                            <FileInput id="attachment" ref="attachment" name="attachment" v-model="form.attachment" multiple="multiple"  />
+                        </div>
+                        
 
                         <!-- Emergency Level -->
                         <div>
@@ -332,9 +342,9 @@ function deleteReport(id){
                                     <span
                                         :class="[
                                             'px-2 py-1 rounded text-xs font-semibold',
-                                            report.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                                            report.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                                            report.status === 'Overdue' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'
+                                            report.status === 'CLOSED' ? 'bg-green-100 text-green-800' :
+                                            report.status === 'IN PROGRESS' ? 'bg-yellow-100 text-yellow-800' :
+                                            report.status === 'PENDING' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'
                                         ]"
                                     >
                                         {{ report.status }}
