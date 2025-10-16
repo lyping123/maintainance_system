@@ -3,8 +3,10 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\reportsController;
 use App\Http\Controllers\technicalPeopleController;
+use App\Mail\remindReportMailer;
 use App\Models\report;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -15,6 +17,24 @@ Route::get('/', function () {
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
     ]);
+});
+
+Route::get('/send-mail',function(){
+    $report=report::all();
+    $report_remind=$report->map(function($item){
+        $updated_at=$item->updated_at;
+        $now=now();
+        $diffInDays=$updated_at->diffInDays($now);
+        if($diffInDays>2 && $item->status!='CLOSED'){
+            return $item;
+        }
+    })->filter(); // filter out null values
+    
+    if($report_remind->isEmpty()){
+        return "No report to remind";
+    }
+    Mail::to("lyping0526@gmail.com")->send(new remindReportMailer($report_remind));
+    
 });
 
 // Route::get('/dashboard', function () {
